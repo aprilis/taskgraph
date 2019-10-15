@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+from collections import defaultdict
+from task import Task
+import runners
+
+logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s', datefmt='%H:%M:%S')
+
+def run_tasks(tasks, runners=[runners.Python(), runners.Bash()]):
+    opened_tasks = set()
+    done_tasks = set()
+    tasks_objects = dict()
+
+    def run_task(task):
+        if task in done_tasks:
+            return task.success
+        if task in opened_tasks:
+            logging.error(f'Encountered circular dependency including task {task}')
+        opened_tasks.add(task)
+
+        if task not in tasks_objects:
+            tasks_objects[task] = Task(task)
+            
+        obj = tasks_objects[task]
+
+        for dep in obj.depends:
+            if not run_task(dep):
+                done_tasks.add(task)
+                return False
+        
+        if not obj.run(runners):
+            done_tasks.add(task)
+            return False
+
+        done_tasks.add(task)
+        return True
+    
+    for task in tasks:
+        if run_task(task):
+            logging.info(f'Task {task} successfully completed')
+        else: logging.error(f'Task {task} failed')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Run specified task')
+    parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
+    args = parser.parse_args()
+    run_tasks(**vars(args))
