@@ -6,7 +6,9 @@ from collections import defaultdict
 from task import Task
 import runners
 
-logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s', datefmt='%H:%M:%S')
+logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
+		    datefmt='%H:%M:%S',
+		    level=logging.INFO)
 
 def run_tasks(tasks, runners=[runners.Python(), runners.Bash()]):
     opened_tasks = set()

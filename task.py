@@ -51,7 +51,7 @@ class Task:
                 return False
 
         #create empty file indicating success
-        open(os.path.join(self.path, Task.SUCCESS_FILE)).close()
+        open(os.path.join(self.path, Task.SUCCESS_FILE), 'w').close()
 
         self.success = True
         return True
