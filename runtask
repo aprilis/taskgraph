@@ -8,7 +8,7 @@ import runners
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s', datefmt='%H:%M:%S')
 
-def run_tasks(tasks, runners=[runners.Python(), runners.Bash()]):
+def run_tasks(tasks, runners=[runners.Python(), runners.Notebook(), runners.Bash()]):
     opened_tasks = set()
     done_tasks = set()
     tasks_objects = dict()
@@ -22,7 +22,7 @@ def run_tasks(tasks, runners=[runners.Python(), runners.Bash()]):
 
         if task not in tasks_objects:
             tasks_objects[task] = Task(task)
-            
+
         obj = tasks_objects[task]
 
         for dep in obj.depends:
