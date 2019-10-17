@@ -30,7 +30,7 @@ class Notebook:
         return cmd.endswith('.ipynb')
 
     def run(self, cmd, env, path):
-        with open(cmd) as f:
+        with open(os.path.join(path, cmd)) as f:
             nb = nbformat.read(f, as_version=4)
         ep = nbconvert.preprocessors.ExecutePreprocessor()
         ok = True

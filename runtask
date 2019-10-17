@@ -10,14 +10,14 @@ logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
 		    level=logging.INFO)
 
-def run_tasks(tasks, runners=[runners.Python(), runners.Bash()]):
+def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash()]):
     opened_tasks = set()
     done_tasks = set()
     tasks_objects = dict()
 
     def run_task(task):
         if task in done_tasks:
-            return task.success
+            return tasks_objects[task].success
         if task in opened_tasks:
             logging.error(f'Encountered circular dependency including task {task}')
         opened_tasks.add(task)

@@ -10,7 +10,7 @@ class Task:
 
     @staticmethod
     def get_path(task_name):
-        os.path.join(Task.PATH, task_name)
+        return os.path.abspath(os.path.join(Task.PATH, task_name))
 
     @property
     def path(self):
@@ -27,14 +27,15 @@ class Task:
             task = json.load(f)
         
         self.success = os.path.exists(os.path.join(self.path, Task.SUCCESS_FILE))
-        self.description = task['description'] if 'description' in task else ''
-        self.depends = task['depends']
+        self.description = task.get('description', '')
+        self.depends = task.get('depends', [])
         
         self.mapping = { dep: Task.get_path(dep) for dep in self.depends }
-        commands = task['commands']
+        commands = task.get('commands', [])
         if type(commands) == str:
             commands = [commands]
         self.commands = [ Template(cmd).substitute(self.mapping) for cmd in commands ]
+        #self.commands = commands
 
     def run(self, runners):
         if self.success:
