@@ -8,27 +8,33 @@ class Task:
     CONFIG_FILE = 'task.json'
     SUCCESS_FILE ='.taskgraph_success'
 
+    @staticmethod
+    def get_path(task_name):
+        os.path.join(Task.PATH, task_name)
+
+    @property
+    def path(self):
+        return Task.get_path(self.name)
+
     def __init__(self, task_name):
-        path = os.path.join(Task.PATH, task_name)
-        if not os.path.isdir(path):
+        self.name = task_name
+
+        if not os.path.isdir(self.path):
             raise FileNotFoundError(f'Task {task_name} does not exist')
 
-        task_path = os.path.join(path, Task.CONFIG_FILE)
+        task_path = os.path.join(self.path, Task.CONFIG_FILE)
         with open(task_path) as f:
             task = json.load(f)
         
-        self.name = task_name
-        self.path = path
-        self.success = os.path.exists(os.path.join(path, Task.SUCCESS_FILE))
+        self.success = os.path.exists(os.path.join(self.path, Task.SUCCESS_FILE))
         self.description = task['description'] if 'description' in task else ''
         self.depends = task['depends']
         
-        mapping = { os.path.join(Task.PATH, dep): dep for dep in self.depends }
-        mapping['self'] = path
+        self.mapping = { dep: Task.get_path(dep) for dep in self.depends }
         commands = task['commands']
         if type(commands) == str:
             commands = [commands]
-        self.commands = [ Template(cmd).substitute(mapping) for cmd in commands ]
+        self.commands = [ Template(cmd).substitute(self.mapping) for cmd in commands ]
 
     def run(self, runners):
         if self.success:
@@ -46,7 +52,7 @@ class Task:
                 return False
 
             logging.info(f'Running "{cmd}"')
-            if not runner.run(cmd):
+            if not runner.run(cmd, self.mapping, self.path):
                 logging.error(f'Command {cmd} failed')
                 return False
 
