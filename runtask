@@ -27,16 +27,17 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
 
         obj = tasks_objects[task]
 
-        for dep in obj.depends:
-            if not run_task(dep):
+        if not obj.success:
+            for dep in obj.depends:
+                if not run_task(dep):
+                    done_tasks.add(task)
+                    return False
+            
+            if not obj.run(runners):
                 done_tasks.add(task)
                 return False
-        
-        if not obj.run(runners):
-            done_tasks.add(task)
-            return False
 
-        done_tasks.add(task)
+            done_tasks.add(task)
         return True
     
     for task in tasks:
