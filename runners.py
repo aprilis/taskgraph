@@ -2,10 +2,10 @@ import subprocess
 import os
 import importlib
 import logging
+import sys
 
 try:
-    import nbconvert
-    import nbformat
+    import papermill as pm
     has_jupyter = True
 except ImportError:
     has_jupyter = False
@@ -36,19 +36,19 @@ class Notebook:
         if not has_jupyter:
             logging.error('Jupyter nbconvert is not installed')
             return False
-        with open(os.path.join(path, cmd)) as f:
-            nb = nbformat.read(f, as_version=4)
-        ep = nbconvert.preprocessors.ExecutePreprocessor()
+        notebook_path = os.path.join(path, cmd)
         ok = True
+        parameters = env
+        parameters['cli'] = True
         try:
-            ep.preprocess(nb, {
-                'metadata': {
-                    'path': path,
-                    'kernelspec': { 'env': env }
-                }})
-        except nbconvert.preprocessors.CellExecutionError as e:
+            pm.execute_notebook(notebook_path,
+                                notebook_path,
+                                cwd=path,
+                                parameters=parameters,
+                                timeout=None,
+                                stdout_file=sys.stdout
+                                )
+        except pm.exceptions.PapermillExecutionError as e:
             logging.error(str(e))
             ok = False
-        with open(cmd, 'w') as f:
-            nbformat.write(nb, f)
         return ok

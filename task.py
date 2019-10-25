@@ -31,6 +31,7 @@ class Task:
         self.depends = task.get('depends', [])
         
         self.mapping = { dep: Task.get_path(dep) for dep in self.depends }
+        self.mapping['root'] = os.path.abspath('.')
         commands = task.get('commands', [])
         if type(commands) == str:
             commands = [commands]
