@@ -46,7 +46,7 @@ class Notebook:
                                 cwd=path,
                                 parameters=parameters,
                                 timeout=None,
-                                stdout_file=sys.stdout
+                                stdout_file=sys.stdout,
                                 stderr_file=sys.stderr
                                 )
         except pm.exceptions.PapermillExecutionError as e:
