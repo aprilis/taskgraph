@@ -34,7 +34,7 @@ class Notebook:
 
     def run(self, cmd, env, path):
         if not has_jupyter:
-            logging.error('Jupyter nbconvert is not installed')
+            logging.error('Papermill is not installed')
             return False
         notebook_path = os.path.join(path, cmd)
         ok = True
@@ -42,11 +42,12 @@ class Notebook:
         parameters['cli'] = True
         try:
             pm.execute_notebook(notebook_path,
-                                notebook_path,
+                                notebook_path.replace('.ipynb', '_output.ipynb'),
                                 cwd=path,
                                 parameters=parameters,
                                 timeout=None,
                                 stdout_file=sys.stdout
+                                stderr_file=sys.stderr
                                 )
         except pm.exceptions.PapermillExecutionError as e:
             logging.error(str(e))
