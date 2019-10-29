@@ -20,6 +20,7 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
             return tasks_objects[task].success
         if task in opened_tasks:
             logging.error(f'Encountered circular dependency including task {task}')
+            return False
         opened_tasks.add(task)
 
         if task not in tasks_objects:
@@ -37,7 +38,7 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
                 done_tasks.add(task)
                 return False
 
-            done_tasks.add(task)
+        done_tasks.add(task)
         return True
     
     for task in tasks:
