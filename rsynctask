@@ -17,7 +17,7 @@ def rsync(source, target):
     result = subprocess.run(command, shell=True)
     return result.returncode == 0
 
-def rsync_tasks(direction, path, tasks):
+def rsync_tasks(path, tasks):
     opened_tasks = set()
     done_tasks = set()
     tasks_objects = dict()
@@ -40,16 +40,15 @@ def rsync_tasks(direction, path, tasks):
                 if not rsync_task(dep):
                     done_tasks.add(task)
                     return False
-            
-            if not rsync(task.path, os.path.join(path, Task.PATH)):
-                done_tasks.add(task)
-                return False
+        elif not rsync(obj.path, os.path.join(path, Task.PATH)):
+            done_tasks.add(task)
+            return False
 
         done_tasks.add(task)
         return True
     
     for task in tasks:
-        if run_task(task):
+        if rsync_task(task):
             logging.info(f'Task {task} successfully completed')
         else: logging.error(f'Task {task} failed')
 
@@ -59,4 +58,4 @@ if __name__ == '__main__':
     parser.add_argument('path', help='host:path_to_repository')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
     args = parser.parse_args()
-    run_tasks(**vars(args))
+    rsync_tasks(**vars(args))
