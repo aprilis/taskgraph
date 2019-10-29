@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+
+import argparse
+import logging
+from collections import defaultdict
+from task import Task
+import subprocess
+import os
+
+logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
+		    datefmt='%H:%M:%S',
+		    level=logging.INFO)
+
+def rsync(source, target):
+    command = f'rsync -av --progress "{source}" "{target}"'
+    logging.info('running %s', command)
+    result = subprocess.run(command, shell=True)
+    return result.returncode == 0
+
+def rsync_tasks(direction, path, tasks):
+    opened_tasks = set()
+    done_tasks = set()
+    tasks_objects = dict()
+
+    def rsync_task(task):
+        if task in done_tasks:
+            return tasks_objects[task].success
+        if task in opened_tasks:
+            logging.error(f'Encountered circular dependency including task {task}')
+            return False
+        opened_tasks.add(task)
+
+        if task not in tasks_objects:
+            tasks_objects[task] = Task(task)
+
+        obj = tasks_objects[task]
+
+        if not obj.success:
+            for dep in obj.depends:
+                if not rsync_task(dep):
+                    done_tasks.add(task)
+                    return False
+            
+            if not rsync(task.path, os.path.join(path, Task.PATH)):
+                done_tasks.add(task)
+                return False
+
+        done_tasks.add(task)
+        return True
+    
+    for task in tasks:
+        if run_task(task):
+            logging.info(f'Task {task} successfully completed')
+        else: logging.error(f'Task {task} failed')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Transfers minimal subset of tasks required to compute selected tasks')
+
+    parser.add_argument('path', help='host:path_to_repository')
+    parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
+    args = parser.parse_args()
+    run_tasks(**vars(args))
