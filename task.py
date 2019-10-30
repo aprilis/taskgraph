@@ -38,6 +38,16 @@ class Task:
         self.commands = [ Template(cmd).substitute(self.mapping) for cmd in commands ]
         #self.commands = commands
 
+    def save_config(self):
+        task_path = os.path.join(self.path, Task.CONFIG_FILE)
+        result = {
+            'description': self.description,
+            'depends': self.depends,
+            'commands': self.commands
+        }
+        with open(task_path, 'w') as f:
+            json.dump(result, f, indent=4)
+
     def run(self, runners):
         if self.success:
             return True
