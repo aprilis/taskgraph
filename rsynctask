@@ -101,7 +101,8 @@ if __name__ == '__main__':
     parser.add_argument('path', help='host:path_to_repository')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
     args = parser.parse_args()
-    if direction == 'to':
+    if args.direction == 'to':
         rsync_tasks_to(**vars(args))
-    elif direction == 'false':
+    elif args.direction == 'from':
         rsync_tasks_from(**vars(args))
+    else: raise ValueError('Invalid value for direction')

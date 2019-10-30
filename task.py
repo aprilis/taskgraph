@@ -20,7 +20,7 @@ class Task:
     @property
     def deps(self):
         if isinstance(self.depends, Mapping):
-            return self.depends.keys()
+            return self.depends.values()
         else: return tuple(self.depends)
 
     def __init__(self, task_name):
@@ -37,7 +37,8 @@ class Task:
         self.description = task.get('description', '')
         self.depends = task.get('depends', [])
         
-        self.mapping = self.get_deps_mapping()
+        mapping = self.get_deps_mapping()
+        self.mapping = { k: Task.get_path(v) for k,v in mapping.items() }
         self.mapping['root'] = os.path.abspath('.')
         commands = task.get('commands', [])
         if type(commands) == str:
