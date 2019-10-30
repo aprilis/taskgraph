@@ -22,7 +22,7 @@ def rsync(source, target):
     result = subprocess.run(command, shell=True)
     return result.returncode == 0
 
-def rsync_tasks_to(path, tasks):
+def rsync_tasks_to(path, tasks, **kwargs):
     opened_tasks = set()
     done_tasks = dict()
     tasks_objects = dict()
@@ -58,7 +58,7 @@ def rsync_tasks_to(path, tasks):
         else: logging.error(f'Task {task} failed')
 
 
-def rsync_tasks_from(path, tasks):
+def rsync_tasks_from(path, tasks, **kwargs):
     opened_tasks = set()
     done_tasks = dict()
     tasks_objects = dict()
