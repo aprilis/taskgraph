@@ -36,15 +36,14 @@ class Task:
         self.success = os.path.exists(os.path.join(self.path, Task.SUCCESS_FILE))
         self.description = task.get('description', '')
         self.depends = task.get('depends', [])
+        self.commands = task.get('commands', [])
         
         mapping = self.get_deps_mapping()
         self.mapping = { k: Task.get_path(v) for k,v in mapping.items() }
         self.mapping['root'] = os.path.abspath('.')
-        commands = task.get('commands', [])
-        if type(commands) == str:
-            commands = [commands]
-        self.commands = [ Template(cmd).substitute(self.mapping) for cmd in commands ]
-        #self.commands = commands
+        if type(self.commands) == str:
+            self.commands = [self.commands]
+        self.processed_commands = [ Template(cmd).substitute(self.mapping) for cmd in self.commands ]
 
     def get_deps_mapping(self):
         if isinstance(self.depends, Mapping):
@@ -72,7 +71,7 @@ class Task:
         
         logging.info(f'Task {self.name} has started')
             
-        for cmd in self.commands:
+        for cmd in self.processed_commands:
             for r in runners:
                 if r.match(cmd):
                     runner = r
