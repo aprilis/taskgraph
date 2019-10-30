@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from string import Template
+from collections.abc import Mapping
 
 class Task:
     PATH = 'tasks'
@@ -15,6 +16,12 @@ class Task:
     @property
     def path(self):
         return Task.get_path(self.name)
+
+    @property
+    def deps(self):
+        if isinstance(self.depends, Mapping):
+            return self.depends.keys()
+        else: return tuple(self.depends)
 
     def __init__(self, task_name):
         self.name = task_name
@@ -30,13 +37,23 @@ class Task:
         self.description = task.get('description', '')
         self.depends = task.get('depends', [])
         
-        self.mapping = { dep: Task.get_path(dep) for dep in self.depends }
+        self.mapping = self.get_deps_mapping()
         self.mapping['root'] = os.path.abspath('.')
         commands = task.get('commands', [])
         if type(commands) == str:
             commands = [commands]
         self.commands = [ Template(cmd).substitute(self.mapping) for cmd in commands ]
         #self.commands = commands
+
+    def get_deps_mapping(self):
+        if isinstance(self.depends, Mapping):
+            return dict(**self.depends)
+        else: return dict(zip(self.depends, self.depends))
+
+    def set_dep_mapping(self, dep, mapping):
+        if not isinstance(self.depends, Mapping):
+            self.depends = self.get_deps_mapping()
+        self.depends[dep] = mapping
 
     def save_config(self):
         task_path = os.path.join(self.path, Task.CONFIG_FILE)

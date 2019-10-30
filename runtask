@@ -29,7 +29,7 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
         obj = tasks_objects[task]
 
         if not obj.success:
-            for dep in obj.depends:
+            for dep in obj.deps:
                 if not run_task(dep):
                     done_tasks.add(task)
                     return False

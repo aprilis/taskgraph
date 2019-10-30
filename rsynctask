@@ -41,7 +41,7 @@ def rsync_tasks_to(path, tasks):
         obj = tasks_objects[task]
 
         if not obj.success:
-            for dep in obj.depends:
+            for dep in obj.deps:
                 if not rsync_task(dep):
                     done_tasks[task] = False
                     return False
@@ -81,7 +81,7 @@ def rsync_tasks_from(path, tasks):
             if not (ssh_file_exists(os.path.join(remote_path, Task.SUCCESS_FILE)) \
                     and rsync(remote_path, Task.PATH)):
                 #failed to synchronize, trying with deps
-                for dep in obj.depends:
+                for dep in obj.deps:
                     if not rsync_task(dep):
                         done_tasks[task] = False
                         return False
