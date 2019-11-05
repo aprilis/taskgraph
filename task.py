@@ -50,10 +50,12 @@ class Task:
             return dict(**self.depends)
         else: return dict(zip(self.depends, self.depends))
 
-    def set_dep_mapping(self, dep, mapping):
+    def trainslate_dep(self, dep, mapping):
         if not isinstance(self.depends, Mapping):
             self.depends = self.get_deps_mapping()
-        self.depends[dep] = mapping
+        for k, v in self.depends.items():
+            if v == dep:
+                self.depends[k] = mapping
 
     def save_config(self):
         task_path = os.path.join(self.path, Task.CONFIG_FILE)

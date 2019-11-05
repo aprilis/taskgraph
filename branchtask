@@ -80,7 +80,7 @@ def branch_tasks(branched_task, targets, suffix, copy_mode, overwrite):
         task = Task(b)
         for d in list(task.deps):
             if d in branched:
-                task.set_dep_mapping(d, d + suffix)
+                task.trainslate_dep(d, d + suffix)
         task.save_config()
 
 if __name__ == '__main__':
