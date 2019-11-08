@@ -1,7 +1,10 @@
 from graphviz import Digraph
 from .task import Task
+from .list import list_tasks
 
 def visualize_tasks(tasks):
+    tasks = list_tasks(tasks)
+
     dot = Digraph()
     visited = set()
 

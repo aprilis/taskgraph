@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#taken from https://stackoverflow.com/a/246128
+SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+TASKGRAPH_DIR=$SOURCE_DIR/../taskgraph
+
+COMMANDS="$(cat $SOURCE_DIR/commands)"
+
+if [[ $1 == "commands" ]]
+then
+    echo "$COMMANDS"
+    exit 0
+fi
+
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]
+then
+    echo "Usage: taskgraph COMMAND ARGS..."
+    echo "Available commands: $COMMANDS"
+    echo "To see help for a specific command run taskgraph COMMAND --help"
+    exit 0
+fi
+
+if [[ $# -eq 0 ]] || [[ ! " $COMMANDS " =~ " $1 " ]]
+then
+    echo "Unknown command: $1"
+    echo "Use taskgraph --help for more info"
+    exit 1
+fi
+
+set -f
+python3 -m "taskgraph.$1" ${@:2}

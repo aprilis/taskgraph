@@ -3,13 +3,15 @@
 import argparse
 import logging
 from collections import defaultdict
-from task import Task
 import subprocess
 import os
 import shutil
 from functools import reduce
 import operator
 import sys
+
+from .task import Task
+from .list import list_tasks
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
@@ -53,7 +55,7 @@ def visit_all(graph, start):
 
 def branch_tasks(branched_task, targets, suffix, copy_mode, overwrite):
     tasks = {}
-    for t in os.listdir(Task.PATH):
+    for t in list_tasks():
         try:
             task = Task(t)
             tasks[task.name] = task
@@ -88,7 +90,7 @@ if __name__ == '__main__':
 
     parser.add_argument('branched_task', help='Name of the task to start branching from')
     parser.add_argument('targets', nargs='*', 
-        help='The names of target tasks to be branched. Script will branch all tasks that depend on branched_task and that at least one of targets depends on (including themselves). If none specified all dependants of branched_task will be copied')
+        help='The names (or patterns) of target tasks to be branched. Script will branch all tasks that depend on branched_task and that at least one of targets depends on (including themselves). If none specified all dependants of branched_task will be copied')
     parser.add_argument('--suffix', help='Suffix to be added to all branched tasks', required=True)
     parser.add_argument('--copy_mode', '-c', choices=['all', 'git-tracked', 'git-commited'],
         default='git-tracked',
@@ -99,4 +101,5 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', '-o', action='store_true', 
         help='Allow script to overwrite existing tasks')
     args = parser.parse_args()
+    args.targets = list_tasks(targets)
     branch_tasks(**vars(args))

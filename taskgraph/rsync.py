@@ -3,9 +3,11 @@
 import argparse
 import logging
 from collections import defaultdict
-from task import Task
 import subprocess
 import os
+
+from .task import Task
+from .list import list_tasks
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
@@ -101,6 +103,7 @@ if __name__ == '__main__':
     parser.add_argument('path', help='host:path_to_repository')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
     args = parser.parse_args()
+    args.tasks = list_tasks(tasks)
     if args.direction == 'to':
         rsync_tasks_to(**vars(args))
     elif args.direction == 'from':

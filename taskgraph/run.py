@@ -3,8 +3,10 @@
 import argparse
 import logging
 from collections import defaultdict
-from task import Task
 import runners
+
+from .task import Task
+from .list import list_tasks
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
@@ -49,5 +51,6 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Run specified task')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
+    args.tasks = list_tasks(tasks)
     args = parser.parse_args()
     run_tasks(**vars(args))
