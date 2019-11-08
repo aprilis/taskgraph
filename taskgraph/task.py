@@ -5,13 +5,17 @@ from string import Template
 from collections.abc import Mapping
 
 class Task:
-    PATH = 'tasks'
+    PATH = os.environ.get('TASKS_PATH', 'tasks')
     CONFIG_FILE = 'task.json'
-    SUCCESS_FILE ='.taskgraph_success'
+    SUCCESS_FILE = '.taskgraph_success'
 
     @staticmethod
     def get_path(task_name):
         return os.path.abspath(os.path.join(Task.PATH, task_name))
+    
+    @staticmethod
+    def mapping_key(task_name):
+        return task_name.replace('/', '_')
 
     @property
     def path(self):
@@ -38,12 +42,14 @@ class Task:
         self.depends = task.get('depends', [])
         self.commands = task.get('commands', [])
         
-        mapping = self.get_deps_mapping()
-        self.mapping = { k: Task.get_path(v) for k,v in mapping.items() }
-        self.mapping['root'] = os.path.abspath('.')
+        self.update_mapping()
         if type(self.commands) == str:
             self.commands = [self.commands]
-        self.processed_commands = [ Template(cmd).substitute(self.mapping) for cmd in self.commands ]
+
+    def update_mapping(self):
+        mapping = self.get_deps_mapping()
+        self.mapping = { Task.mapping_key(k): Task.get_path(v) for k,v in mapping.items() }
+        self.mapping['__root__'] = os.path.abspath('.')
 
     def get_deps_mapping(self):
         if isinstance(self.depends, Mapping):
@@ -56,6 +62,7 @@ class Task:
         for k, v in self.depends.items():
             if v == dep:
                 self.depends[k] = mapping
+        self.update_mapping()
 
     def save_config(self):
         task_path = os.path.join(self.path, Task.CONFIG_FILE)
@@ -72,8 +79,10 @@ class Task:
             return True
         
         logging.info(f'Task {self.name} has started')
+
+        processed_commands = [ Template(cmd).substitute(self.mapping) for cmd in self.commands ]
             
-        for cmd in self.processed_commands:
+        for cmd in processed_commands:
             for r in runners:
                 if r.match(cmd):
                     runner = r
