@@ -25,6 +25,7 @@ def rsync(source, target):
     return result.returncode == 0
 
 def rsync_tasks_to(path, tasks, **kwargs):
+    tasks = list_tasks(tasks)
     opened_tasks = set()
     done_tasks = dict()
     tasks_objects = dict()
@@ -61,6 +62,7 @@ def rsync_tasks_to(path, tasks, **kwargs):
 
 
 def rsync_tasks_from(path, tasks, **kwargs):
+    tasks = list_tasks(tasks)
     opened_tasks = set()
     done_tasks = dict()
     tasks_objects = dict()
@@ -103,7 +105,6 @@ if __name__ == '__main__':
     parser.add_argument('path', help='host:path_to_repository')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
     args = parser.parse_args()
-    args.tasks = list_tasks(tasks)
     if args.direction == 'to':
         rsync_tasks_to(**vars(args))
     elif args.direction == 'from':

@@ -54,6 +54,7 @@ def visit_all(graph, start):
     return visited
 
 def branch_tasks(branched_task, targets, suffix, copy_mode, overwrite):
+    targets = list_tasks(targets)
     tasks = {}
     for t in list_tasks():
         try:
@@ -101,5 +102,4 @@ if __name__ == '__main__':
     parser.add_argument('--overwrite', '-o', action='store_true', 
         help='Allow script to overwrite existing tasks')
     args = parser.parse_args()
-    args.targets = list_tasks(targets)
     branch_tasks(**vars(args))

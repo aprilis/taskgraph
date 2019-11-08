@@ -13,6 +13,7 @@ logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    level=logging.INFO)
 
 def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash()]):
+    tasks = list_tasks(tasks)
     opened_tasks = set()
     done_tasks = set()
     tasks_objects = dict()
@@ -51,6 +52,5 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Run specified task')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
-    args.tasks = list_tasks(tasks)
     args = parser.parse_args()
     run_tasks(**vars(args))
