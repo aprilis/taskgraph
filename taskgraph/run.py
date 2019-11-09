@@ -3,8 +3,8 @@
 import argparse
 import logging
 from collections import defaultdict
-import runners
 
+from . import runners
 from .task import Task
 from .list import list_tasks
 
