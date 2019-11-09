@@ -12,34 +12,10 @@ import sys
 
 from .task import Task
 from .list import list_tasks
+from . import util
+from .duplicate import duplicate
 
-logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
-		    datefmt='%H:%M:%S',
-		    level=logging.INFO)
-
-def shell(command, cwd='.'):
-    result = subprocess.run(command, shell=True, cwd=os.path.abspath(cwd), text=True,
-        stdout=subprocess.PIPE, stderr=sys.stderr)
-    if result.returncode != 0:
-        raise RuntimeError(f'Command {command} exited with non-zero exit code: {result.returncode}')
-    return result.stdout
-
-def branch(src, dst, mode, overwrite):
-    if mode == 'all':
-        shutil.copytree(src, dst, dirs_exist_ok=overwrite)
-    elif mode in ('git-tracked', 'git-commited'):
-        os.makedirs(dst, exist_ok=overwrite)
-        if mode == 'git-tracked':
-            command = 'git ls-files'
-        else:
-            command = 'git ls-tree -r HEAD --name-only'
-        files = shell(command, cwd=src).split()
-        for f in files:
-            f_src = os.path.join(src, f)
-            f_dst = os.path.join(dst, f)
-            os.makedirs(os.path.dirname(f_dst), exist_ok=True)
-            shutil.copy2(f_src, f_dst)
-    else: raise ValueError('Invalid mode')
+util.config_logging()
 
 def visit_all(graph, start):
     visited = set()
@@ -75,11 +51,9 @@ def branch_tasks(branched_task, targets, suffix, copy_mode, overwrite):
         branched = branched & targets_deps
     for t in branched:
         b = t + suffix
-        src = Task.get_path(t)
-        dst = Task.get_path(b)
         
         logging.info(f'Branching task {t} to {b}')
-        branch(src, dst, copy_mode, overwrite)
+        duplicate(t, b, copy_mode, overwrite)
         task = Task(b)
         for d in list(task.deps):
             if d in branched:
