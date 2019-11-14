@@ -12,10 +12,12 @@ from .task import Task
 from .list import list_tasks
 from .util import shell
 
-SEND_COMMAND = 'tar -c {} | lz4 -v'
+SEND_COMMAND = 'tar -c {} | lz4'
 RECEIVE_COMMAND = 'lz4 -d | tar -x'
+SIZE_COMMAND = 'du -sb {}'
+PROGRESS_COMMAND = 'pv -s {}'
 REMOTE_COMMAND = 'ssh -q {} {}'
-FILE_EXISTS_COMMAND = '[[ -f {} ]] && return 0 || return 1'
+FILE_EXISTS_COMMAND = '[[ -f {} ]] && exit 0 || exit 1'
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
@@ -37,13 +39,28 @@ def remote_file_exists(file, host_path):
     command = make_remote(command, host_path)
     return shell(command, mode='exit_success')
 
+def insert_into_pipeline(pipeline, command, pos):
+    pipeline = pipeline.split('|')
+    pipeline.insert(pos, command)
+    return '|'.join(pipeline)
+
 def sync(task_path, host_path, direction):
+    size_command = make_command(SIZE_COMMAND, task_path)
+    if direction == 'from':
+        size_command = make_remote(size_command, host_path)
+    size = shell(size_command, mode='stdout').split()[0]
+    progress_command = make_command(PROGRESS_COMMAND, size)
+
     send_command = make_command(SEND_COMMAND, task_path)
     receive_command = RECEIVE_COMMAND
     if direction == 'to':
+        send_command = insert_into_pipeline(send_command, progress_command, 1)
         receive_command = make_remote(receive_command, host_path)
     else:
+        receive_command = insert_into_pipeline(receive_command, progress_command, 1)
         send_command = make_remote(send_command, host_path)
+        
+    
     command = send_command  + ' | ' + receive_command
     logging.info('running %s', command)
     return shell(command, mode='exit_success')
