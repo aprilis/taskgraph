@@ -3,6 +3,7 @@ import os
 import importlib
 import logging
 import sys
+import shlex
 
 try:
     import papermill as pm
@@ -22,7 +23,7 @@ class Bash:
 
 class Python:
     def match(self, cmd):
-        parts = cmd.split()
+        parts = shlex.split(cmd)
         return len(parts) > 0 and parts[0].endswith('.py')
     
     def run(self, cmd, env, path):

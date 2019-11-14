@@ -12,6 +12,10 @@ class Task:
     @staticmethod
     def get_path(task_name):
         return os.path.abspath(os.path.join(Task.PATH, task_name))
+
+    @staticmethod
+    def get_repo_path(task_name):
+        return os.path.relpath(os.path.join(Task.PATH, task_name))
     
     @staticmethod
     def mapping_key(task_name):
@@ -20,6 +24,10 @@ class Task:
     @property
     def path(self):
         return Task.get_path(self.name)
+
+    @property
+    def repo_path(self):
+        return Task.get_repo_path(self.name)
 
     @property
     def deps(self):

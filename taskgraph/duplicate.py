@@ -10,14 +10,16 @@ def duplicate(source, destination, copy_mode, overwrite):
     dst = Task.get_path(destination)
 
     if copy_mode == 'all':
-        shutil.copytree(src, dst, dirs_exist_ok=overwrite)
+        if overwrite and os.path.exists(dst):
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
     elif copy_mode in ('git-tracked', 'git-commited'):
         os.makedirs(dst, exist_ok=overwrite)
         if copy_mode == 'git-tracked':
             command = 'git ls-files'
         else:
             command = 'git ls-tree -r HEAD --name-only'
-        files = shell(command, cwd=src).split()
+        files = shell(command, cwd=src, mode='stdout').split()
         for f in files:
             f_src = os.path.join(src, f)
             f_dst = os.path.join(dst, f)
