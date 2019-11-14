@@ -12,9 +12,9 @@ from .task import Task
 from .list import list_tasks
 from .util import shell
 
-SEND_COMMAND = 'tar -c {} | lz4 -c'
+SEND_COMMAND = 'tar -c {} | lz4 -v'
 RECEIVE_COMMAND = 'lz4 -d | tar -x'
-REMOTE_COMMAND = 'ssh -q -carcfour128 {} {}'
+REMOTE_COMMAND = 'ssh -q {} {}'
 FILE_EXISTS_COMMAND = '[[ -f {} ]] && return 0 || return 1'
 
 logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
@@ -25,7 +25,7 @@ def ssh_path_split(path):
     return path.split(':', maxsplit=1)
 
 def make_command(pattern, *args):
-    return pattern.format(map(shlex.quote, args))
+    return pattern.format(*map(shlex.quote, args))
 
 def make_remote(command, host_path):
     host, path = ssh_path_split(host_path)
@@ -44,7 +44,7 @@ def sync(task_path, host_path, direction):
         receive_command = make_remote(receive_command, host_path)
     else:
         send_command = make_remote(send_command, host_path)
-    command = send_command | receive_command
+    command = send_command  + ' | ' + receive_command
     logging.info('running %s', command)
     return shell(command, mode='exit_success')
 
