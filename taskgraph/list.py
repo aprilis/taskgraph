@@ -10,7 +10,7 @@ def _is_task_dir(dir_path):
 
 filter_tasks = fnmatch.filter
 
-def list_tasks(patterns=[]):
+def list_tasks(patterns='*'):
     tasks_path = Task.PATH
     results = []
 
