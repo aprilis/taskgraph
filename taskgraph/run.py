@@ -12,7 +12,7 @@ logging.basicConfig(format='TaskGraph (%(asctime)s): %(message)s',
 		    datefmt='%H:%M:%S',
 		    level=logging.INFO)
 
-def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash()]):
+def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash()], force=False):
     tasks = list_tasks(tasks)
     opened_tasks = set()
     done_tasks = set()
@@ -31,13 +31,13 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
 
         obj = tasks_objects[task]
 
-        if not obj.success:
+        if not obj.success or (force and task in tasks):
             for dep in obj.deps:
                 if not run_task(dep):
                     done_tasks.add(task)
                     return False
             
-            if not obj.run(runners):
+            if not obj.run(runners, force=force):
                 done_tasks.add(task)
                 return False
 
@@ -52,5 +52,7 @@ def run_tasks(tasks, runners=[runners.Notebook(), runners.Python(), runners.Bash
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Run specified task')
     parser.add_argument('tasks', nargs='+', help='The name of the tasks to run')
+    parser.add_argument('--force', '-f', action='store_true', default=False, 
+        help='Whether to run task even if it has been done before')
     args = parser.parse_args()
     run_tasks(**vars(args))

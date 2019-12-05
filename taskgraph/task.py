@@ -35,6 +35,17 @@ class Task:
             return self.depends.values()
         else: return tuple(self.depends)
 
+    @property
+    def success(self):
+        return os.path.exists(os.path.join(self.path, Task.SUCCESS_FILE))
+
+    @success.setter
+    def success(self, success):
+        if success:
+            open(os.path.join(self.path, Task.SUCCESS_FILE), 'w').close()
+        else:
+            os.remove(os.path.join(self.path, Task.SUCCESS_FILE))
+
     def __init__(self, task_name):
         self.name = task_name
 
@@ -45,7 +56,6 @@ class Task:
         with open(task_path) as f:
             task = json.load(f)
         
-        self.success = os.path.exists(os.path.join(self.path, Task.SUCCESS_FILE))
         self.description = task.get('description', '')
         self.depends = task.get('depends', [])
         self.commands = task.get('commands', [])
@@ -82,9 +92,12 @@ class Task:
         with open(task_path, 'w') as f:
             json.dump(result, f, indent=4)
 
-    def run(self, runners):
+    def run(self, runners, force=False):
         if self.success:
-            return True
+            if force:
+                self.success = False
+            else:
+                return True
         
         logging.info(f'Task {self.name} has started')
 
@@ -102,10 +115,7 @@ class Task:
             logging.info(f'Running "{cmd}"')
             if not runner.run(cmd, self.mapping, self.path):
                 logging.error(f'Command {cmd} failed')
-                return False
-
-        #create empty file indicating success
-        open(os.path.join(self.path, Task.SUCCESS_FILE), 'w').close()
+                return False        
 
         self.success = True
         return True
